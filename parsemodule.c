@@ -34,37 +34,44 @@ Node* parse (const char* expr, int f, int l)
 // function arguments: expression, index of the first element, index of the last
 // element
 {
-	if (f == l)
-		return NewNode(expr[f]);
-
 	char temp;
+
+	Node* node;
 
 	int i = 0;
 
-	for (int j = f; j < l; ++j)
+	for (int j = f; j <= l; ++j)
 	{
 		temp = expr[j];
 		if (temp == '(')
 			--i;	
-		if (temp == ')')
+		else if (temp == ')')
 			++i;
-		if (i == -1)
+		else if (i == -1)
 		{
 			if (temp == '&' || temp == 'v' || temp == '>' || temp == '=')
 			{
-				Node* node = NewNode(temp);
-				node->l_child = parse (expr, f + 1, j - 1);
-				node->r_child = parse (expr, j + 1, l - 1);
-				return node;
+				node = NewNode(temp);
+				if ((node->l_child = parse (expr, f + 1, j - 1)) == NULL)
+					return NULL;
+				if ((node->r_child = parse (expr, j + 1, l - 1)) == NULL)
+					return NULL;
+				j = l - 1;
 			}
-			if (temp == '-')
+			else if (temp == '-')
 			{
-				Node* node = NewNode(temp);
-				node->l_child = parse (expr, j + 1, l - 1);
-				return node;	
+				node = NewNode(temp);
+				if ((node->l_child = parse (expr, j + 1, l - 1)) == NULL)
+					return NULL;
+				j = l - 1;
 			}
 		}
 	}
+	if (i == 0)
+		if (f == l)
+			return NewNode(expr[f]);
+		else if (f < l)
+			return node;
 
 	return NULL;
 	

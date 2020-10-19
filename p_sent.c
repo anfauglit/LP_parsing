@@ -15,7 +15,11 @@ int main (int argc, char** argv)
 
 	char* my_sent = argv[1];
 
-	n = parse(my_sent, 0, strlen(my_sent) - 1);
+	if ((n = parse(my_sent, 0, strlen(my_sent) - 1)) == NULL)
+	{
+		printf("\"%s\" is not a formula of LP\n", my_sent);
+		return 0;
+	}
 
 	print_tree(n, 0);
 
