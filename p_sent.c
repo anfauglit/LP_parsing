@@ -1,9 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "parse.h"
+#include <math.h>
 
 int main (int argc, char** argv)
 {
+	Signature* sig;
+	
+	sig = malloc(sizeof(Signature));
+
+	sig->size = 0;
+	memset(sig->atomic, 0, SIG_SIZE);
+
 	Node* n;
 	// char my_sent[] = "((f&f)&f)";
 	
@@ -21,7 +29,11 @@ int main (int argc, char** argv)
 		return 0;
 	}
 
+	get_sig (n, sig);
+
 	print_tree(n, 0);
+
+	printTTable(n, sig);
 
 	return 0;
 }

@@ -1,5 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+#include "parse.h"
+#include <math.h>
+
+#define MASK 1
+
+#ifndef SIG_SIZE
+#define SIG_SIZE 26
+#endif
 
 typedef struct node Node;
 
@@ -75,4 +85,56 @@ Node* parse (const char* expr, int f, int l)
 
 	return NULL;
 	
+}
+
+void get_sig (Node* root, Signature* sig)
+{
+	if (root->l_child == NULL)
+	{
+		if (sig->atomic[root->data - 'a'] == 0) {
+			sig->size++;
+			sig->atomic[root->data - 'a']	= sig->size;
+		}
+	}
+	else
+		get_sig (root->l_child, sig);
+
+	if (root->r_child != NULL)
+		get_sig (root->r_child, sig);
+}
+
+int getTValue (Node* node, Signature* sig, int sigma)
+{
+	if (node->l_child == NULL) {
+		printf("%i ",(sigma >> (sig->atomic[node->data - 'a'] - 1)) & MASK);
+		return sigma >> (sig->atomic[node->data - 'a'] - 1) & MASK;
+	}
+	else if (node->data == '-')
+		return ~getTValue(node->l_child, sig, sigma) & MASK;
+	else {
+		int p = getTValue(node->l_child, sig, sigma);
+		int q = getTValue(node->r_child, sig, sigma);
+		if (node->data == '&')
+			return p & q;
+		else if (node->data == 'v')
+			return p | q; 
+		else if (node->data == '>')
+			return (~p & MASK) | q; 
+		else if (node->data == '=')
+			return ((~p & MASK) | q) & ((~q & MASK) | p);
+	}
+}
+
+void printTTable (Node* node, Signature* sig)
+{
+	for (int i = 0; i < sig->size; ++i)
+		for (int j = 0; j < SIG_SIZE; ++j) 
+			if (sig->atomic[j] == i + 1) {
+				printf("%c ", (char) (j + 'a'));
+				break;
+			}
+	printf("TVal\n");
+
+	for (int i = 0; i < pow(2, sig->size); ++i)
+		printf("%i\n", getTValue(node, sig, i));
 }
